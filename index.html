@@ -1,79 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Item Image Tester</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1a1a;
-            color: #eeeeee;
-            padding: 20px;
-        }
-        h1 { text-align: center; color: #ffac33; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        .card {
-            background: #2d2d2d;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-        .card:hover { transform: scale(1.05); border-color: #ffac33; }
-        .card img {
-            width: 32px; /* Upscaled for visibility */
-            height: 32px;
-            image-rendering: pixelated; /* Keeps Minecraft icons sharp */
-            margin-bottom: 10px;
-            background: #3d3d3d;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        .card p { margin: 0; font-size: 0.85rem; word-break: break-word; }
-        .missing { color: #ff4d4d; font-style: italic; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bazar Logs | 3D Audit Trail</title>
+  <style>
+    :root {
+      --primary: #00ff00;
+      --bg-dark: #0a0a0a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --accent: #00d4ff;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      perspective: 1000px;
+    }
+
+    /* 3D Container */
+    .dashboard {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      transform-style: preserve-3d;
+    }
+
+    .header-3d {
+      text-align: center;
+      margin-bottom: 50px;
+      transform: translateZ(50px);
+    }
+
+    .header-3d h1 {
+      font-size: 2.5rem;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(0,255,0,0.3));
+    }
+
+    /* Glass Card Style */
+    .log-card {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 25px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform: translateZ(0);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .log-card:hover {
+      transform: translateZ(20px) scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 20px 40px rgba(0,255,0,0.1);
+    }
+
+    .log-meta {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    .user-tag { color: var(--accent); font-weight: bold; }
+
+    /* Price Change Chips */
+    .change-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      margin: 5px 0;
+    }
+
+    .item-name { font-weight: 500; color: #fff; }
+
+    .price-flow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .old-price { color: #ff4444; text-decoration: line-through; font-size: 0.85rem; }
+    .new-price { color: var(--primary); font-weight: bold; }
+    .arrow { color: #666; }
+
+    /* Login Overlay */
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .login-box {
+      background: #181818;
+      padding: 40px;
+      border-radius: 20px;
+      border: 1px solid var(--primary);
+      width: 100%;
+      max-width: 350px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(0,255,0,0.1);
+    }
+
+    .input-3d {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: white;
+      box-sizing: border-box;
+    }
+
+    .btn-3d {
+      width: 100%;
+      padding: 15px;
+      margin-top: 20px;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-3d:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,255,0,0.4);
+    }
+
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
 
-    <h1>Item Image Tester</h1>
-    <div class="grid" id="itemGrid">Loading items...</div>
+<div id="authOverlay">
+  <div class="login-box">
+    <h2>Bazar Vault</h2>
+    <p style="color: #666; font-size: 0.9rem;">Authentication Required</p>
+    <input type="email" id="email" class="input-3d" placeholder="Admin Email">
+    <input type="password" id="password" class="input-3d" placeholder="Password">
+    <button id="loginBtn" class="btn-3d">Unlock Logs</button>
+    <div id="loginError" style="color:red; margin-top:10px; font-size:0.8rem;"></div>
+  </div>
+</div>
 
-    <script>
-        async function loadItems() {
-            try {
-                const response = await fetch('items.json');
-                const data = await response.json();
-                const grid = document.getElementById('itemGrid');
-                grid.innerHTML = '';
+<div id="mainContent" class="dashboard hidden">
+  <div class="header-3d">
+    <h1>Price Audit Trail</h1>
+    <button id="logoutBtn" style="background:none; border:1px solid #444; color:#888; cursor:pointer; border-radius:4px; padding:5px 10px;">Logout</button>
+  </div>
 
-                data.forEach(entry => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    
-                    // Check if URL is empty or missing
-                    const hasUrl = entry.url && entry.url.trim() !== "";
-                    
-                    card.innerHTML = `
-                        ${hasUrl 
-                            ? `<img src="${entry.url}" alt="${entry.item}" onerror="this.src='https://via.placeholder.com/32?text=X';">` 
-                            : `<div class="missing">No URL</div>`}
-                        <p>${entry.item}</p>
-                    `;
-                    grid.appendChild(card);
-                });
-            } catch (error) {
-                document.getElementById('itemGrid').innerHTML = '<p class="missing">Error loading items.json. Make sure the file is in the same folder and you are using a local server.</p>';
-                console.error(error);
-            }
-        }
+  <div id="logContainer">
+    </div>
+</div>
 
-        loadItems();
-    </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDy-AQZOGLc65rCIZAHlrdHes4VTvw6QmY",
+  authDomain: "craftersmc-bazar.firebaseapp.com",
+  projectId: "craftersmc-bazar",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const el = {
+  authOverlay: document.getElementById("authOverlay"),
+  mainContent: document.getElementById("mainContent"),
+  logContainer: document.getElementById("logContainer"),
+  loginBtn: document.getElementById("loginBtn"),
+  email: document.getElementById("email"),
+  password: document.getElementById("password"),
+  loginError: document.getElementById("loginError"),
+  logoutBtn: document.getElementById("logoutBtn")
+};
+
+// Auth Logic
+onAuthStateChanged(auth, user => {
+  if (user) {
+    el.authOverlay.classList.add("hidden");
+    el.mainContent.classList.remove("hidden");
+    fetchLogs();
+  } else {
+    el.authOverlay.classList.remove("hidden");
+    el.mainContent.classList.add("hidden");
+  }
+});
+
+el.loginBtn.onclick = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, el.email.value, el.password.value);
+  } catch (err) {
+    el.loginError.textContent = "Access Denied";
+  }
+};
+
+el.logoutBtn.onclick = () => signOut(auth);
+
+// Fetch Logs
+async function fetchLogs() {
+  el.logContainer.innerHTML = "<p style='text-align:center;'>Accessing Database...</p>";
+  
+  try {
+    const q = query(collection(db, "price_logs"), orderBy("timestamp", "desc"), limit(20));
+    const snap = await getDocs(q);
+    
+    el.logContainer.innerHTML = "";
+    
+    snap.forEach(doc => {
+      const data = doc.data();
+      const date = data.timestamp?.toDate().toLocaleString() || "Recent";
+      
+      const card = document.createElement("div");
+      card.className = "log-card";
+      
+      let itemsHtml = "";
+      for (const [name, change] of Object.entries(data.items)) {
+        itemsHtml += `
+          <div class="change-row">
+            <span class="item-name">${name}</span>
+            <div class="price-flow">
+              <span class="old-price">${change.from}</span>
+              <span class="arrow">→</span>
+              <span class="new-price">${change.to}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="log-meta">
+          <span>📅 ${date}</span>
+          <span class="user-tag">👤 ${data.updatedBy}</span>
+        </div>
+        <div class="log-details">
+          ${itemsHtml}
+        </div>
+      `;
+      el.logContainer.appendChild(card);
+    });
+  } catch (err) {
+    console.error(err);
+    el.logContainer.innerHTML = "<p style='color:red;'>Failed to load logs. Check permissions.</p>";
+  }
+}
+</script>
 </body>
 </html>
