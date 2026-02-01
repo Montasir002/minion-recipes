@@ -51,10 +51,10 @@
       overflow: hidden;
     }
 
-    /* FIX: Added padding-right to prevent email from hitting the wall */
+    /* HEADER FIX: Flexible container for Date/Time vs Email */
     .log-trigger {
       width: 100%;
-      padding: 18px 25px; 
+      padding: 15px 20px;
       background: none;
       border: none;
       color: #fff;
@@ -64,9 +64,35 @@
       cursor: pointer;
       font-family: inherit;
       box-sizing: border-box;
+      gap: 15px;
     }
 
-    .log-entry.active { border-color: var(--neon-blue); }
+    .timestamp-block {
+      display: flex;
+      flex-direction: row; /* Default side-by-side */
+      gap: 8px;
+      font-size: 0.85rem;
+      text-align: left;
+      flex-shrink: 0;
+    }
+
+    /* Stack time under date when email is long/revealed */
+    .log-entry.email-revealed .timestamp-block {
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .admin-email { 
+      color: #777; 
+      font-size: 0.8rem; 
+      cursor: pointer; 
+      transition: color 0.2s;
+      font-family: sans-serif;
+      text-align: right;
+      word-break: break-all;
+      max-width: 60%;
+    }
+    .admin-email:hover { color: var(--neon-blue); }
 
     .log-content {
       max-height: 0;
@@ -77,31 +103,35 @@
 
     .log-entry.active .log-content { max-height: 8000px; }
 
+    /* GRID/ROW FIX: Left-aligned images, Right-aligned prices */
     .data-grid { 
-      padding: 20px; 
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 15px;
+      padding: 15px; 
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     
     .data-row {
       display: flex;
-      flex-direction: row;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between; /* Pushes content to opposite ends */
       background: rgba(255,255,255,0.02);
-      padding: 12px;
-      border-radius: 8px;
+      padding: 10px 15px;
+      border-radius: 6px;
       border: 1px solid rgba(255,255,255,0.05);
-      gap: 15px;
+    }
+
+    .item-side {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .item-wrapper {
       position: relative;
-      width: 42px;
-      height: 42px;
+      width: 38px;
+      height: 38px;
       cursor: pointer;
-      flex-shrink: 0;
     }
 
     .item-img {
@@ -112,9 +142,8 @@
 
     .item-label {
       position: absolute;
-      bottom: 120%;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 125%;
+      left: 0; /* Align label to the start of the image */
       background: var(--neon-blue);
       color: #000;
       padding: 4px 10px;
@@ -124,41 +153,29 @@
       border-radius: 3px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s, bottom 0.2s;
+      transition: opacity 0.2s;
       z-index: 10;
     }
 
     .item-wrapper:hover .item-label, 
-    .item-wrapper.show-label .item-label { opacity: 1; bottom: 130%; }
+    .item-wrapper.show-label .item-label { opacity: 1; }
 
-    .price-block {
-      display: flex;
+    /* PRICE ALIGNMENT: Fixed width for the 9-digit price area */
+    .price-side {
+      display: grid;
+      /* Fixed columns: Old Price | Arrow | New Price */
+      grid-template-columns: 100px 30px 100px; 
       align-items: center;
-      gap: 8px;
-      font-size: 0.9rem;
+      text-align: center;
       font-weight: bold;
-      white-space: nowrap;
+      font-size: 0.9rem;
     }
-    .old-p { color: var(--error-red); }
-    .new-p { color: var(--neon-green); }
-    .divider { color: var(--neon-blue); opacity: 0.6; }
 
-    /* FIX: Added margin-left to ensure it doesn't touch the date/time */
-    .admin-email { 
-      color: #777; 
-      font-size: 0.8rem; 
-      cursor: pointer; 
-      transition: color 0.2s;
-      font-family: sans-serif;
-      padding: 5px;
-      text-align: right;
-      margin-left: 10px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .admin-email:hover { color: var(--neon-blue); }
+    .old-p { color: var(--error-red); text-align: right; }
+    .new-p { color: var(--neon-green); text-align: left; }
+    .divider { color: var(--neon-blue); opacity: 0.6; font-size: 0.8rem; }
 
+    /* Login UI remains standard */
     #authOverlay {
       position: fixed; inset: 0; background: var(--darker);
       display: flex; align-items: center; justify-content: center; z-index: 1000;
@@ -167,14 +184,13 @@
       background: var(--panel); padding: 40px; border: 1px solid var(--border);
       width: 100%; max-width: 360px; text-align: center; border-radius: 8px;
     }
-    .input-group { position: relative; margin-bottom: 15px; }
     .login-input {
       width: 100%; background: #000; border: 1px solid #333;
-      color: var(--neon-green); padding: 12px; box-sizing: border-box; outline: none; font-family: inherit;
+      color: var(--neon-green); padding: 12px; margin-bottom: 15px; box-sizing: border-box; outline: none; font-family: inherit;
     }
     .btn-login {
       width: 100%; background: var(--neon-green); color: #000;
-      border: none; padding: 14px; font-weight: bold; cursor: pointer; margin-top: 10px;
+      border: none; padding: 14px; font-weight: bold; cursor: pointer;
     }
     .hidden { display: none !important; }
   </style>
@@ -183,12 +199,9 @@
 
 <div id="authOverlay">
   <div class="login-card">
-    <h2 style="color:var(--neon-green); letter-spacing: 1px;">Bazaar Price Update</h2>
-    <div class="input-group"><input type="email" id="email" class="login-input" placeholder="Admin Email"></div>
-    <div class="input-group">
-        <input type="password" id="password" class="login-input" placeholder="Password">
-        <i class="fas fa-eye" style="position:absolute; right:12px; top:15px; cursor:pointer; color:#555;" onclick="togglePass()"></i>
-    </div>
+    <h2 style="color:var(--neon-green)">Bazaar Audit</h2>
+    <input type="email" id="email" class="login-input" placeholder="Admin Email">
+    <input type="password" id="password" class="login-input" placeholder="Password">
     <button id="loginBtn" class="btn-login">Login</button>
   </div>
 </div>
@@ -216,7 +229,7 @@
       const response = await fetch('items.json');
       const data = await response.json();
       data.forEach(i => itemMap[i.item] = i.url);
-    } catch (e) { console.error("Could not load items.json", e); }
+    } catch (e) { console.error(e); }
   }
 
   function getMaskedEmail(email) {
@@ -235,7 +248,7 @@
   });
 
   document.getElementById("loginBtn").onclick = async () => {
-    try { await signInWithEmailAndPassword(auth, email.value, password.value); } catch (e) { alert("Access Denied"); }
+    try { await signInWithEmailAndPassword(auth, email.value, password.value); } catch (e) { alert("Denied"); }
   };
 
   async function fetchLogs() {
@@ -255,18 +268,19 @@
       const entry = document.createElement("div");
       entry.className = "log-entry";
       
-      // FIX: Sort items alphabetically by name so they aren't random
       const sortedItems = Object.entries(data.items || {}).sort((a, b) => a[0].localeCompare(b[0]));
 
       const itemsHtml = sortedItems.map(([name, change]) => {
         const imgUrl = itemMap[name] || "https://craftersmc.wiki.gg/images/thumb/Barrier.png/100px-Barrier.png";
         return `
           <div class="data-row">
-            <div class="item-wrapper" onclick="toggleItemLabel(event, this)">
-              <div class="item-label">${name}</div>
-              <img src="${imgUrl}" class="item-img" alt="${name}" loading="lazy">
+            <div class="item-side">
+              <div class="item-wrapper" onclick="toggleItemLabel(event, this)">
+                <div class="item-label">${name}</div>
+                <img src="${imgUrl}" class="item-img" loading="lazy">
+              </div>
             </div>
-            <div class="price-block">
+            <div class="price-side">
               <span class="old-p">${change.from}</span>
               <span class="divider">>></span>
               <span class="new-p">${change.to}</span>
@@ -277,8 +291,11 @@
 
       entry.innerHTML = `
         <div class="log-trigger">
-          <span style="font-size:0.8rem; flex-shrink: 0;"><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
-          <span class="admin-email" id="mail-${doc.id}" onclick="event.stopPropagation(); toggleEmailText('${doc.id}')">
+          <div class="timestamp-block">
+            <span style="color:var(--neon-green); font-weight:bold;">● ${dateStr}</span>
+            <span style="opacity:0.7;">${timeStr}</span>
+          </div>
+          <span class="admin-email" id="mail-${doc.id}" onclick="event.stopPropagation(); toggleEmailText('${doc.id}', this)">
             ${getMaskedEmail(email)}
           </span>
         </div>
@@ -295,11 +312,18 @@
     });
   }
 
-  window.toggleEmailText = (id) => {
-    const el = document.getElementById(`mail-${id}`);
+  window.toggleEmailText = (id, el) => {
+    const parentLog = el.closest('.log-entry');
     const actual = rawEmails[id];
     const masked = getMaskedEmail(actual);
-    el.textContent = el.textContent.trim() === masked ? actual : masked;
+    
+    if (el.textContent.trim() === masked) {
+      el.textContent = actual;
+      parentLog.classList.add('email-revealed');
+    } else {
+      el.textContent = masked;
+      parentLog.classList.remove('email-revealed');
+    }
   };
 
   window.toggleItemLabel = (e, el) => {
@@ -312,11 +336,6 @@
   document.addEventListener('click', () => {
     document.querySelectorAll('.item-wrapper').forEach(w => w.classList.remove('show-label'));
   });
-
-  window.togglePass = () => {
-    const p = document.getElementById('password');
-    p.type = p.type === 'password' ? 'text' : 'password';
-  };
 </script>
 </body>
 </html>
