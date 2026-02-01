@@ -91,11 +91,10 @@
     .new-p { color: var(--neon-green); }
     .divider { color: var(--neon-blue); font-size: 0.8rem; }
 
-    /* Email Reveal Styles */
+    /* Admin Email Masking Styles */
     .user-reveal { display: flex; align-items: center; gap: 10px; }
-    .hidden-mail { filter: blur(4px); transition: 0.2s; }
-    .hidden-mail.visible { filter: blur(0); }
-    .eye-btn { background: none; border: none; color: #666; cursor: pointer; padding: 5px; }
+    .admin-email { color: #888; font-size: 0.85rem; }
+    .eye-btn { background: none; border: none; color: #555; cursor: pointer; padding: 5px; }
     .eye-btn:hover { color: var(--neon-blue); }
 
     /* Login Layout */
@@ -152,6 +151,7 @@
       font-weight: bold;
       cursor: pointer;
       margin-top: 10px;
+      text-transform: uppercase;
     }
 
     .hidden { display: none !important; }
@@ -161,8 +161,8 @@
 
 <div id="authOverlay">
   <div class="login-card">
-    <h2>BAZAAR_VAULT_ACCESS</h2>
-    <p>Please authenticate to view the price audit trail.</p>
+    <h2>Bazaar Price Update</h2>
+    <p>Authentication Required</p>
     
     <div class="input-group">
       <input type="email" id="email" class="login-input" placeholder="Admin Email">
@@ -173,7 +173,7 @@
       <i class="fas fa-eye pass-toggle" id="togglePass"></i>
     </div>
     
-    <button id="loginBtn" class="btn-login">INITIATE_SESSION</button>
+    <button id="loginBtn" class="btn-login">Login</button>
   </div>
 </div>
 
@@ -199,6 +199,15 @@
   const db = getFirestore(app);
   const auth = getAuth(app);
 
+  const logDataStorage = {}; // Temporary store for actual emails
+
+  // Utility to mask email (e.g., test@gmail.com -> te****.com)
+  function maskEmail(email) {
+    if (!email || !email.includes('@')) return "****";
+    const [name, domain] = email.split('@');
+    return name.substring(0, 2) + "****." + domain.split('.').pop();
+  }
+
   // Password Visibility Toggle
   document.getElementById('togglePass').onclick = function() {
     const passInput = document.getElementById('password');
@@ -222,7 +231,7 @@
   document.getElementById("loginBtn").onclick = async () => {
     try {
       await signInWithEmailAndPassword(auth, document.getElementById("email").value, document.getElementById("password").value);
-    } catch (e) { alert("Access Denied: Invalid Credentials"); }
+    } catch (e) { alert("Access Denied"); }
   };
 
   async function fetchLogs() {
@@ -236,7 +245,11 @@
       const ts = data.timestamp?.toDate() || new Date();
       const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const dateStr = ts.toLocaleDateString();
+      const rawEmail = data.updatedBy || "unknown@system.com";
       
+      // Store raw email for toggle function
+      logDataStorage[doc.id] = rawEmail;
+
       const entry = document.createElement("div");
       entry.className = "log-entry";
       
@@ -255,8 +268,8 @@
         <div class="log-trigger">
           <span><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
           <div class="user-reveal">
-            <span class="hidden-mail" id="mail-${doc.id}">${data.updatedBy}</span>
-            <button class="eye-btn" onclick="event.stopPropagation(); toggleMail('${doc.id}')">
+            <span class="admin-email" id="mail-${doc.id}">${maskEmail(rawEmail)}</span>
+            <button class="eye-btn" onclick="event.stopPropagation(); toggleMailVisibility('${doc.id}')">
               <i class="fas fa-eye" id="eye-${doc.id}"></i>
             </button>
           </div>
@@ -266,7 +279,6 @@
         </div>
       `;
 
-      // Accordion Logic
       entry.querySelector('.log-trigger').onclick = (e) => {
         const isActive = entry.classList.contains('active');
         document.querySelectorAll('.log-entry').forEach(el => el.classList.remove('active'));
@@ -277,16 +289,18 @@
     });
   }
 
-  // Global function for the email eye button
-  window.toggleMail = (id) => {
+  // Global function for email masking toggle
+  window.toggleMailVisibility = (id) => {
     const mailSpan = document.getElementById(`mail-${id}`);
     const eyeIcon = document.getElementById(`eye-${id}`);
-    if (mailSpan.classList.contains('visible')) {
-      mailSpan.classList.remove('visible');
-      eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
-    } else {
-      mailSpan.classList.add('visible');
+    const originalEmail = logDataStorage[id];
+
+    if (eyeIcon.classList.contains('fa-eye')) {
+      mailSpan.textContent = originalEmail;
       eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      mailSpan.textContent = maskEmail(originalEmail);
+      eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
     }
   };
 </script>
