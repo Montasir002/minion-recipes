@@ -74,40 +74,58 @@
       background: rgba(0,0,0,0.3);
     }
 
-    .log-entry.active .log-content { max-height: 2500px; }
+    .log-entry.active .log-content { max-height: 3000px; }
 
-    /* FIXED PRICE ALIGNMENT LOGIC */
+    /* DATA GRID FIX: Prevents vertical stacking and aligns columns */
     .data-grid { padding: 15px; display: flex; flex-direction: column; gap: 8px; }
     
     .data-row {
       display: grid;
-      /* Name takes remaining space | Red price | Arrow | Green price */
-      grid-template-columns: 1fr 80px 40px 100px; 
+      /* 1. Name (Flexible) | 2. Old Price (Fixed) | 3. Divider (Fixed) | 4. New Price (Fixed) */
+      grid-template-columns: 1fr 70px 35px 90px;
       align-items: center;
       background: rgba(255,255,255,0.03);
       padding: 12px 15px;
       border-radius: 4px;
-      gap: 10px;
+      gap: 5px;
     }
 
     .item-name { 
       color: #fff; 
-      overflow: hidden; 
-      text-overflow: ellipsis;
-      padding-right: 10px;
+      white-space: nowrap;    /* Keeps text on one line */
+      overflow: hidden;       /* Hides overflow */
+      text-overflow: ellipsis; /* Adds '...' if too long */
+      font-size: 0.9rem;
     }
 
-    .old-p { color: var(--error-red); text-align: right; font-weight: bold; }
-    .new-p { color: var(--neon-green); text-align: left; font-weight: bold; }
-    .divider { color: var(--neon-blue); text-align: center; font-size: 0.8rem; }
+    .old-p { 
+      color: var(--error-red); 
+      text-align: right; 
+      font-weight: bold;
+      min-width: 0;
+    }
 
-    /* Admin Email Masking */
+    .new-p { 
+      color: var(--neon-green); 
+      text-align: left; 
+      font-weight: bold;
+      min-width: 0;
+    }
+
+    .divider { 
+      color: var(--neon-blue); 
+      text-align: center; 
+      font-size: 0.75rem; 
+      opacity: 0.8;
+    }
+
+    /* Email Masking & Eye Toggle */
     .user-reveal { display: flex; align-items: center; gap: 8px; }
-    .admin-email { color: #888; font-size: 0.8rem; }
-    .eye-btn { background: none; border: none; color: #555; cursor: pointer; padding: 5px; font-size: 0.9rem; }
+    .admin-email { color: #888; font-size: 0.8rem; font-family: sans-serif; }
+    .eye-btn { background: none; border: none; color: #555; cursor: pointer; padding: 4px; }
     .eye-btn:hover { color: var(--neon-blue); }
 
-    /* Login Layout */
+    /* Login Styles */
     #authOverlay {
       position: fixed;
       inset: 0;
@@ -128,9 +146,8 @@
       border-radius: 8px;
     }
 
-    .login-card h2 { color: var(--neon-green); margin-bottom: 10px; font-size: 1.2rem; }
-    .login-card p { color: #666; font-size: 0.8rem; margin-bottom: 30px; }
-
+    .login-card h2 { color: var(--neon-green); margin-bottom: 25px; font-size: 1.3rem; }
+    
     .input-group { position: relative; margin-bottom: 15px; }
     .login-input {
       width: 100%;
@@ -162,6 +179,7 @@
       cursor: pointer;
       margin-top: 10px;
       text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .hidden { display: none !important; }
@@ -172,7 +190,6 @@
 <div id="authOverlay">
   <div class="login-card">
     <h2>Bazaar Price Update</h2>
-    <p>Authentication Required</p>
     
     <div class="input-group">
       <input type="email" id="email" class="login-input" placeholder="Admin Email">
@@ -209,14 +226,16 @@
   const db = getFirestore(app);
   const auth = getAuth(app);
 
-  const logDataStorage = {}; 
+  const rawEmails = {}; 
 
-  function maskEmail(email) {
+  // Function to mask the email string
+  function getMaskedEmail(email) {
     if (!email || !email.includes('@')) return "****";
     const [name, domain] = email.split('@');
     return name.substring(0, 2) + "****." + domain.split('.').pop();
   }
 
+  // Toggle Password Visibility
   document.getElementById('togglePass').onclick = function() {
     const passInput = document.getElementById('password');
     if (passInput.type === 'password') {
@@ -239,7 +258,7 @@
   document.getElementById("loginBtn").onclick = async () => {
     try {
       await signInWithEmailAndPassword(auth, document.getElementById("email").value, document.getElementById("password").value);
-    } catch (e) { alert("Access Denied"); }
+    } catch (e) { alert("Login failed. Check credentials."); }
   };
 
   async function fetchLogs() {
@@ -251,11 +270,11 @@
     snap.forEach((doc) => {
       const data = doc.data();
       const ts = data.timestamp?.toDate() || new Date();
-      const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
       const dateStr = ts.toLocaleDateString();
-      const rawEmail = data.updatedBy || "system@admin.com";
+      const email = data.updatedBy || "system@admin.com";
       
-      logDataStorage[doc.id] = rawEmail;
+      rawEmails[doc.id] = email;
 
       const entry = document.createElement("div");
       entry.className = "log-entry";
@@ -273,8 +292,8 @@
         <div class="log-trigger">
           <span style="font-size: 0.85rem;"><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
           <div class="user-reveal">
-            <span class="admin-email" id="mail-${doc.id}">${maskEmail(rawEmail)}</span>
-            <button class="eye-btn" onclick="event.stopPropagation(); toggleMailVisibility('${doc.id}')">
+            <span class="admin-email" id="mail-${doc.id}">${getMaskedEmail(email)}</span>
+            <button class="eye-btn" onclick="event.stopPropagation(); toggleAdminEmail('${doc.id}')">
               <i class="fas fa-eye" id="eye-${doc.id}"></i>
             </button>
           </div>
@@ -284,7 +303,7 @@
         </div>
       `;
 
-      entry.querySelector('.log-trigger').onclick = (e) => {
+      entry.querySelector('.log-trigger').onclick = () => {
         const isActive = entry.classList.contains('active');
         document.querySelectorAll('.log-entry').forEach(el => el.classList.remove('active'));
         if (!isActive) entry.classList.add('active');
@@ -294,17 +313,18 @@
     });
   }
 
-  window.toggleMailVisibility = (id) => {
-    const mailSpan = document.getElementById(`mail-${id}`);
-    const eyeIcon = document.getElementById(`eye-${id}`);
-    const originalEmail = logDataStorage[id];
+  // Global toggle for admin email eye button
+  window.toggleAdminEmail = (id) => {
+    const mailText = document.getElementById(`mail-${id}`);
+    const icon = document.getElementById(`eye-${id}`);
+    const actual = rawEmails[id];
 
-    if (eyeIcon.classList.contains('fa-eye')) {
-      mailSpan.textContent = originalEmail;
-      eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+    if (icon.classList.contains('fa-eye')) {
+      mailText.textContent = actual;
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
     } else {
-      mailSpan.textContent = maskEmail(originalEmail);
-      eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+      mailText.textContent = getMaskedEmail(actual);
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
   };
 </script>
