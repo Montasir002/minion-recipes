@@ -51,10 +51,9 @@
       overflow: hidden;
     }
 
-    /* HEADER FIX: Flexible container for Date/Time vs Email */
     .log-trigger {
       width: 100%;
-      padding: 15px 20px;
+      padding: 15px 25px;
       background: none;
       border: none;
       color: #fff;
@@ -69,14 +68,13 @@
 
     .timestamp-block {
       display: flex;
-      flex-direction: row; /* Default side-by-side */
-      gap: 8px;
+      flex-direction: row;
+      gap: 12px;
       font-size: 0.85rem;
       text-align: left;
       flex-shrink: 0;
     }
 
-    /* Stack time under date when email is long/revealed */
     .log-entry.email-revealed .timestamp-block {
       flex-direction: column;
       gap: 2px;
@@ -89,10 +87,8 @@
       transition: color 0.2s;
       font-family: sans-serif;
       text-align: right;
-      word-break: break-all;
       max-width: 60%;
     }
-    .admin-email:hover { color: var(--neon-blue); }
 
     .log-content {
       max-height: 0;
@@ -103,34 +99,35 @@
 
     .log-entry.active .log-content { max-height: 8000px; }
 
-    /* GRID/ROW FIX: Left-aligned images, Right-aligned prices */
+    /* GRID FIX: Added more horizontal padding for a centered look */
     .data-grid { 
-      padding: 15px; 
+      padding: 20px 40px; 
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
     
+    /* ROW FIX: Center-aligned content with internal breathing room */
     .data-row {
       display: flex;
       align-items: center;
-      justify-content: space-between; /* Pushes content to opposite ends */
+      justify-content: space-between;
       background: rgba(255,255,255,0.02);
-      padding: 10px 15px;
-      border-radius: 6px;
+      padding: 12px 25px; /* Increased side padding */
+      border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.05);
     }
 
     .item-side {
       display: flex;
       align-items: center;
-      gap: 12px;
+      padding-left: 10px; /* Moves image further right */
     }
 
     .item-wrapper {
       position: relative;
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       cursor: pointer;
     }
 
@@ -142,40 +139,42 @@
 
     .item-label {
       position: absolute;
-      bottom: 125%;
-      left: 0; /* Align label to the start of the image */
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%);
       background: var(--neon-blue);
       color: #000;
-      padding: 4px 10px;
+      padding: 4px 12px;
       font-size: 0.75rem;
       font-weight: bold;
       white-space: nowrap;
-      border-radius: 3px;
+      border-radius: 4px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s;
       z-index: 10;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     .item-wrapper:hover .item-label, 
     .item-wrapper.show-label .item-label { opacity: 1; }
 
-    /* PRICE ALIGNMENT: Fixed width for the 9-digit price area */
+    /* PRICE ALIGNMENT: 9-digit support with right-side padding */
     .price-side {
       display: grid;
-      /* Fixed columns: Old Price | Arrow | New Price */
-      grid-template-columns: 100px 30px 100px; 
+      grid-template-columns: 90px 40px 90px; 
       align-items: center;
       text-align: center;
       font-weight: bold;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      padding-right: 10px; /* Moves price block away from right edge */
     }
 
     .old-p { color: var(--error-red); text-align: right; }
     .new-p { color: var(--neon-green); text-align: left; }
-    .divider { color: var(--neon-blue); opacity: 0.6; font-size: 0.8rem; }
+    .divider { color: var(--neon-blue); opacity: 0.5; font-size: 0.8rem; }
 
-    /* Login UI remains standard */
+    /* Login UI */
     #authOverlay {
       position: fixed; inset: 0; background: var(--darker);
       display: flex; align-items: center; justify-content: center; z-index: 1000;
@@ -229,7 +228,7 @@
       const response = await fetch('items.json');
       const data = await response.json();
       data.forEach(i => itemMap[i.item] = i.url);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Item mapping failed."); }
   }
 
   function getMaskedEmail(email) {
@@ -248,7 +247,7 @@
   });
 
   document.getElementById("loginBtn").onclick = async () => {
-    try { await signInWithEmailAndPassword(auth, email.value, password.value); } catch (e) { alert("Denied"); }
+    try { await signInWithEmailAndPassword(auth, email.value, password.value); } catch (e) { alert("Access Denied"); }
   };
 
   async function fetchLogs() {
@@ -316,7 +315,6 @@
     const parentLog = el.closest('.log-entry');
     const actual = rawEmails[id];
     const masked = getMaskedEmail(actual);
-    
     if (el.textContent.trim() === masked) {
       el.textContent = actual;
       parentLog.classList.add('email-revealed');
