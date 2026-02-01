@@ -43,7 +43,6 @@
       font-size: 1.8rem;
     }
 
-    /* Accordion Container */
     .log-entry {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -52,9 +51,10 @@
       overflow: hidden;
     }
 
+    /* FIX: Added padding-right to prevent email from hitting the wall */
     .log-trigger {
       width: 100%;
-      padding: 18px 20px;
+      padding: 18px 25px; 
       background: none;
       border: none;
       color: #fff;
@@ -63,6 +63,7 @@
       align-items: center;
       cursor: pointer;
       font-family: inherit;
+      box-sizing: border-box;
     }
 
     .log-entry.active { border-color: var(--neon-blue); }
@@ -76,19 +77,16 @@
 
     .log-entry.active .log-content { max-height: 8000px; }
 
-    /* The Responsive Grid */
     .data-grid { 
       padding: 20px; 
       display: grid;
-      /* On desktop: 3-4 columns | On mobile: 1-2 columns */
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 15px;
     }
     
-    /* NEW: Horizontal Alignment Fix */
     .data-row {
       display: flex;
-      flex-direction: row; /* Aligns Image and Price side-by-side */
+      flex-direction: row;
       align-items: center;
       justify-content: center;
       background: rgba(255,255,255,0.02);
@@ -98,7 +96,6 @@
       gap: 15px;
     }
 
-    /* Image & Label System */
     .item-wrapper {
       position: relative;
       width: 42px;
@@ -134,7 +131,6 @@
     .item-wrapper:hover .item-label, 
     .item-wrapper.show-label .item-label { opacity: 1; bottom: 130%; }
 
-    /* Price Formatting - Stays aligned on the same line as image */
     .price-block {
       display: flex;
       align-items: center;
@@ -147,7 +143,7 @@
     .new-p { color: var(--neon-green); }
     .divider { color: var(--neon-blue); opacity: 0.6; }
 
-    /* Clickable Masked Email */
+    /* FIX: Added margin-left to ensure it doesn't touch the date/time */
     .admin-email { 
       color: #777; 
       font-size: 0.8rem; 
@@ -155,10 +151,14 @@
       transition: color 0.2s;
       font-family: sans-serif;
       padding: 5px;
+      text-align: right;
+      margin-left: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .admin-email:hover { color: var(--neon-blue); }
 
-    /* Login UI */
     #authOverlay {
       position: fixed; inset: 0; background: var(--darker);
       display: flex; align-items: center; justify-content: center; z-index: 1000;
@@ -255,7 +255,10 @@
       const entry = document.createElement("div");
       entry.className = "log-entry";
       
-      const itemsHtml = Object.entries(data.items || {}).map(([name, change]) => {
+      // FIX: Sort items alphabetically by name so they aren't random
+      const sortedItems = Object.entries(data.items || {}).sort((a, b) => a[0].localeCompare(b[0]));
+
+      const itemsHtml = sortedItems.map(([name, change]) => {
         const imgUrl = itemMap[name] || "https://craftersmc.wiki.gg/images/thumb/Barrier.png/100px-Barrier.png";
         return `
           <div class="data-row">
@@ -274,7 +277,7 @@
 
       entry.innerHTML = `
         <div class="log-trigger">
-          <span style="font-size:0.8rem;"><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
+          <span style="font-size:0.8rem; flex-shrink: 0;"><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
           <span class="admin-email" id="mail-${doc.id}" onclick="event.stopPropagation(); toggleEmailText('${doc.id}')">
             ${getMaskedEmail(email)}
           </span>
