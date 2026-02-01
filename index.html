@@ -74,33 +74,37 @@
       background: rgba(0,0,0,0.4);
     }
 
-    .log-entry.active .log-content { max-height: 5000px; }
+    .log-entry.active .log-content { max-height: 8000px; }
 
-    /* The Responsive Grid - Fixes the 'Ladder' text issue */
+    /* The Responsive Grid */
     .data-grid { 
       padding: 20px; 
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      /* On desktop: 3-4 columns | On mobile: 1-2 columns */
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 15px;
     }
     
+    /* NEW: Horizontal Alignment Fix */
     .data-row {
       display: flex;
-      flex-direction: column;
+      flex-direction: row; /* Aligns Image and Price side-by-side */
       align-items: center;
+      justify-content: center;
       background: rgba(255,255,255,0.02);
-      padding: 15px;
+      padding: 12px;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.05);
+      gap: 15px;
     }
 
     /* Image & Label System */
     .item-wrapper {
       position: relative;
-      width: 52px;
-      height: 52px;
-      margin-bottom: 12px;
+      width: 42px;
+      height: 42px;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
     .item-img {
@@ -111,13 +115,13 @@
 
     .item-label {
       position: absolute;
-      bottom: 110%;
+      bottom: 120%;
       left: 50%;
       transform: translateX(-50%);
       background: var(--neon-blue);
       color: #000;
       padding: 4px 10px;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: bold;
       white-space: nowrap;
       border-radius: 3px;
@@ -128,15 +132,16 @@
     }
 
     .item-wrapper:hover .item-label, 
-    .item-wrapper.show-label .item-label { opacity: 1; bottom: 120%; }
+    .item-wrapper.show-label .item-label { opacity: 1; bottom: 130%; }
 
-    /* Price Formatting */
+    /* Price Formatting - Stays aligned on the same line as image */
     .price-block {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: bold;
+      white-space: nowrap;
     }
     .old-p { color: var(--error-red); }
     .new-p { color: var(--neon-green); }
@@ -287,7 +292,6 @@
     });
   }
 
-  // Email Text Toggle Logic
   window.toggleEmailText = (id) => {
     const el = document.getElementById(`mail-${id}`);
     const actual = rawEmails[id];
@@ -295,7 +299,6 @@
     el.textContent = el.textContent.trim() === masked ? actual : masked;
   };
 
-  // Item Label Toggle for Mobile
   window.toggleItemLabel = (e, el) => {
     e.stopPropagation();
     const isShowing = el.classList.contains('show-label');
@@ -303,7 +306,6 @@
     if (!isShowing) el.classList.add('show-label');
   };
 
-  // Global Close for labels
   document.addEventListener('click', () => {
     document.querySelectorAll('.item-wrapper').forEach(w => w.classList.remove('show-label'));
   });
