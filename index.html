@@ -74,27 +74,37 @@
       background: rgba(0,0,0,0.3);
     }
 
-    .log-entry.active .log-content { max-height: 1500px; }
+    .log-entry.active .log-content { max-height: 2500px; }
 
-    /* Price Formatting */
-    .data-grid { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    /* FIXED PRICE ALIGNMENT LOGIC */
+    .data-grid { padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+    
     .data-row {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      /* Name takes remaining space | Red price | Arrow | Green price */
+      grid-template-columns: 1fr 80px 40px 100px; 
       align-items: center;
       background: rgba(255,255,255,0.03);
-      padding: 12px 20px;
+      padding: 12px 15px;
       border-radius: 4px;
+      gap: 10px;
     }
-    .price-display { display: flex; gap: 15px; align-items: center; font-weight: bold; }
-    .old-p { color: var(--error-red); }
-    .new-p { color: var(--neon-green); }
-    .divider { color: var(--neon-blue); font-size: 0.8rem; }
 
-    /* Admin Email Masking Styles */
-    .user-reveal { display: flex; align-items: center; gap: 10px; }
-    .admin-email { color: #888; font-size: 0.85rem; }
-    .eye-btn { background: none; border: none; color: #555; cursor: pointer; padding: 5px; }
+    .item-name { 
+      color: #fff; 
+      overflow: hidden; 
+      text-overflow: ellipsis;
+      padding-right: 10px;
+    }
+
+    .old-p { color: var(--error-red); text-align: right; font-weight: bold; }
+    .new-p { color: var(--neon-green); text-align: left; font-weight: bold; }
+    .divider { color: var(--neon-blue); text-align: center; font-size: 0.8rem; }
+
+    /* Admin Email Masking */
+    .user-reveal { display: flex; align-items: center; gap: 8px; }
+    .admin-email { color: #888; font-size: 0.8rem; }
+    .eye-btn { background: none; border: none; color: #555; cursor: pointer; padding: 5px; font-size: 0.9rem; }
     .eye-btn:hover { color: var(--neon-blue); }
 
     /* Login Layout */
@@ -199,16 +209,14 @@
   const db = getFirestore(app);
   const auth = getAuth(app);
 
-  const logDataStorage = {}; // Temporary store for actual emails
+  const logDataStorage = {}; 
 
-  // Utility to mask email (e.g., test@gmail.com -> te****.com)
   function maskEmail(email) {
     if (!email || !email.includes('@')) return "****";
     const [name, domain] = email.split('@');
     return name.substring(0, 2) + "****." + domain.split('.').pop();
   }
 
-  // Password Visibility Toggle
   document.getElementById('togglePass').onclick = function() {
     const passInput = document.getElementById('password');
     if (passInput.type === 'password') {
@@ -245,9 +253,8 @@
       const ts = data.timestamp?.toDate() || new Date();
       const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const dateStr = ts.toLocaleDateString();
-      const rawEmail = data.updatedBy || "unknown@system.com";
+      const rawEmail = data.updatedBy || "system@admin.com";
       
-      // Store raw email for toggle function
       logDataStorage[doc.id] = rawEmail;
 
       const entry = document.createElement("div");
@@ -255,18 +262,16 @@
       
       const itemsHtml = Object.entries(data.items || {}).map(([name, change]) => `
         <div class="data-row">
-          <span style="color:#fff">${name}</span>
-          <div class="price-display">
-            <span class="old-p">${change.from}</span>
-            <span class="divider">>></span>
-            <span class="new-p">${change.to}</span>
-          </div>
+          <span class="item-name">${name}</span>
+          <span class="old-p">${change.from}</span>
+          <span class="divider">>></span>
+          <span class="new-p">${change.to}</span>
         </div>
       `).join('');
 
       entry.innerHTML = `
         <div class="log-trigger">
-          <span><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
+          <span style="font-size: 0.85rem;"><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
           <div class="user-reveal">
             <span class="admin-email" id="mail-${doc.id}">${maskEmail(rawEmail)}</span>
             <button class="eye-btn" onclick="event.stopPropagation(); toggleMailVisibility('${doc.id}')">
@@ -289,7 +294,6 @@
     });
   }
 
-  // Global function for email masking toggle
   window.toggleMailVisibility = (id) => {
     const mailSpan = document.getElementById(`mail-${id}`);
     const eyeIcon = document.getElementById(`eye-${id}`);
