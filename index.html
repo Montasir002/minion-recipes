@@ -24,7 +24,7 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 40px auto;
       padding: 20px;
     }
@@ -43,11 +43,11 @@
       font-size: 1.8rem;
     }
 
-    /* Accordion Styles */
+    /* Accordion Container */
     .log-entry {
       background: var(--panel);
       border: 1px solid var(--border);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       border-radius: 4px;
       overflow: hidden;
     }
@@ -71,117 +71,106 @@
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease-out;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.4);
     }
 
-    .log-entry.active .log-content { max-height: 3000px; }
+    .log-entry.active .log-content { max-height: 5000px; }
 
-    /* DATA GRID FIX: Prevents vertical stacking and aligns columns */
-    .data-grid { padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+    /* The Responsive Grid - Fixes the 'Ladder' text issue */
+    .data-grid { 
+      padding: 20px; 
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+    }
     
     .data-row {
-      display: grid;
-      /* 1. Name (Flexible) | 2. Old Price (Fixed) | 3. Divider (Fixed) | 4. New Price (Fixed) */
-      grid-template-columns: 1fr 70px 35px 90px;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      background: rgba(255,255,255,0.03);
-      padding: 12px 15px;
-      border-radius: 4px;
-      gap: 5px;
+      background: rgba(255,255,255,0.02);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .item-name { 
-      color: #fff; 
-      white-space: nowrap;    /* Keeps text on one line */
-      overflow: hidden;       /* Hides overflow */
-      text-overflow: ellipsis; /* Adds '...' if too long */
-      font-size: 0.9rem;
+    /* Image & Label System */
+    .item-wrapper {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      margin-bottom: 12px;
+      cursor: pointer;
     }
 
-    .old-p { 
-      color: var(--error-red); 
-      text-align: right; 
+    .item-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .item-label {
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--neon-blue);
+      color: #000;
+      padding: 4px 10px;
+      font-size: 0.7rem;
       font-weight: bold;
-      min-width: 0;
+      white-space: nowrap;
+      border-radius: 3px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, bottom 0.2s;
+      z-index: 10;
     }
 
-    .new-p { 
-      color: var(--neon-green); 
-      text-align: left; 
-      font-weight: bold;
-      min-width: 0;
-    }
+    .item-wrapper:hover .item-label, 
+    .item-wrapper.show-label .item-label { opacity: 1; bottom: 120%; }
 
-    .divider { 
-      color: var(--neon-blue); 
-      text-align: center; 
-      font-size: 0.75rem; 
-      opacity: 0.8;
-    }
-
-    /* Email Masking & Eye Toggle */
-    .user-reveal { display: flex; align-items: center; gap: 8px; }
-    .admin-email { color: #888; font-size: 0.8rem; font-family: sans-serif; }
-    .eye-btn { background: none; border: none; color: #555; cursor: pointer; padding: 4px; }
-    .eye-btn:hover { color: var(--neon-blue); }
-
-    /* Login Styles */
-    #authOverlay {
-      position: fixed;
-      inset: 0;
-      background: var(--darker);
+    /* Price Formatting */
+    .price-block {
       display: flex;
       align-items: center;
-      justify-content: center;
-      z-index: 1000;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
     }
+    .old-p { color: var(--error-red); }
+    .new-p { color: var(--neon-green); }
+    .divider { color: var(--neon-blue); opacity: 0.6; }
 
+    /* Clickable Masked Email */
+    .admin-email { 
+      color: #777; 
+      font-size: 0.8rem; 
+      cursor: pointer; 
+      transition: color 0.2s;
+      font-family: sans-serif;
+      padding: 5px;
+    }
+    .admin-email:hover { color: var(--neon-blue); }
+
+    /* Login UI */
+    #authOverlay {
+      position: fixed; inset: 0; background: var(--darker);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
     .login-card {
-      background: var(--panel);
-      padding: 40px;
-      border: 1px solid var(--border);
-      width: 100%;
-      max-width: 360px;
-      text-align: center;
-      border-radius: 8px;
+      background: var(--panel); padding: 40px; border: 1px solid var(--border);
+      width: 100%; max-width: 360px; text-align: center; border-radius: 8px;
     }
-
-    .login-card h2 { color: var(--neon-green); margin-bottom: 25px; font-size: 1.3rem; }
-    
     .input-group { position: relative; margin-bottom: 15px; }
     .login-input {
-      width: 100%;
-      background: #000;
-      border: 1px solid #333;
-      color: var(--neon-green);
-      padding: 12px;
-      box-sizing: border-box;
-      outline: none;
-      font-family: inherit;
+      width: 100%; background: #000; border: 1px solid #333;
+      color: var(--neon-green); padding: 12px; box-sizing: border-box; outline: none; font-family: inherit;
     }
-
-    .pass-toggle {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #666;
-      cursor: pointer;
-    }
-
     .btn-login {
-      width: 100%;
-      background: var(--neon-green);
-      color: #000;
-      border: none;
-      padding: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      width: 100%; background: var(--neon-green); color: #000;
+      border: none; padding: 14px; font-weight: bold; cursor: pointer; margin-top: 10px;
     }
-
     .hidden { display: none !important; }
   </style>
 </head>
@@ -189,25 +178,18 @@
 
 <div id="authOverlay">
   <div class="login-card">
-    <h2>Bazaar Price Update</h2>
-    
+    <h2 style="color:var(--neon-green); letter-spacing: 1px;">Bazaar Price Update</h2>
+    <div class="input-group"><input type="email" id="email" class="login-input" placeholder="Admin Email"></div>
     <div class="input-group">
-      <input type="email" id="email" class="login-input" placeholder="Admin Email">
+        <input type="password" id="password" class="login-input" placeholder="Password">
+        <i class="fas fa-eye" style="position:absolute; right:12px; top:15px; cursor:pointer; color:#555;" onclick="togglePass()"></i>
     </div>
-    
-    <div class="input-group">
-      <input type="password" id="password" class="login-input" placeholder="Password">
-      <i class="fas fa-eye pass-toggle" id="togglePass"></i>
-    </div>
-    
     <button id="loginBtn" class="btn-login">Login</button>
   </div>
 </div>
 
 <div id="mainContent" class="container hidden">
-  <header class="terminal-header">
-    <h1>Bazaar price logs</h1>
-  </header>
+  <header class="terminal-header"><h1>Bazaar price logs</h1></header>
   <div id="logContainer"></div>
 </div>
 
@@ -216,39 +198,31 @@
   import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDy-AQZOGLc65rCIZAHlrdHes4VTvw6QmY",
-    authDomain: "craftersmc-bazar.firebaseapp.com",
-    projectId: "craftersmc-bazar",
-  };
-
+  const firebaseConfig = { apiKey: "AIzaSyDy-AQZOGLc65rCIZAHlrdHes4VTvw6QmY", authDomain: "craftersmc-bazar.firebaseapp.com", projectId: "craftersmc-bazar" };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
 
-  const rawEmails = {}; 
+  let itemMap = {};
+  const rawEmails = {};
 
-  // Function to mask the email string
+  async function loadItems() {
+    try {
+      const response = await fetch('items.json');
+      const data = await response.json();
+      data.forEach(i => itemMap[i.item] = i.url);
+    } catch (e) { console.error("Could not load items.json", e); }
+  }
+
   function getMaskedEmail(email) {
     if (!email || !email.includes('@')) return "****";
     const [name, domain] = email.split('@');
     return name.substring(0, 2) + "****." + domain.split('.').pop();
   }
 
-  // Toggle Password Visibility
-  document.getElementById('togglePass').onclick = function() {
-    const passInput = document.getElementById('password');
-    if (passInput.type === 'password') {
-      passInput.type = 'text';
-      this.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-      passInput.type = 'password';
-      this.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-  };
-
-  onAuthStateChanged(auth, user => {
+  onAuthStateChanged(auth, async user => {
     if (user) {
+      await loadItems();
       document.getElementById("authOverlay").classList.add("hidden");
       document.getElementById("mainContent").classList.remove("hidden");
       fetchLogs();
@@ -256,9 +230,7 @@
   });
 
   document.getElementById("loginBtn").onclick = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, document.getElementById("email").value, document.getElementById("password").value);
-    } catch (e) { alert("Login failed. Check credentials."); }
+    try { await signInWithEmailAndPassword(auth, email.value, password.value); } catch (e) { alert("Access Denied"); }
   };
 
   async function fetchLogs() {
@@ -270,62 +242,75 @@
     snap.forEach((doc) => {
       const data = doc.data();
       const ts = data.timestamp?.toDate() || new Date();
-      const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const dateStr = ts.toLocaleDateString();
       const email = data.updatedBy || "system@admin.com";
-      
       rawEmails[doc.id] = email;
 
       const entry = document.createElement("div");
       entry.className = "log-entry";
       
-      const itemsHtml = Object.entries(data.items || {}).map(([name, change]) => `
-        <div class="data-row">
-          <span class="item-name">${name}</span>
-          <span class="old-p">${change.from}</span>
-          <span class="divider">>></span>
-          <span class="new-p">${change.to}</span>
-        </div>
-      `).join('');
+      const itemsHtml = Object.entries(data.items || {}).map(([name, change]) => {
+        const imgUrl = itemMap[name] || "https://craftersmc.wiki.gg/images/thumb/Barrier.png/100px-Barrier.png";
+        return `
+          <div class="data-row">
+            <div class="item-wrapper" onclick="toggleItemLabel(event, this)">
+              <div class="item-label">${name}</div>
+              <img src="${imgUrl}" class="item-img" alt="${name}" loading="lazy">
+            </div>
+            <div class="price-block">
+              <span class="old-p">${change.from}</span>
+              <span class="divider">>></span>
+              <span class="new-p">${change.to}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
 
       entry.innerHTML = `
         <div class="log-trigger">
-          <span style="font-size: 0.85rem;"><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
-          <div class="user-reveal">
-            <span class="admin-email" id="mail-${doc.id}">${getMaskedEmail(email)}</span>
-            <button class="eye-btn" onclick="event.stopPropagation(); toggleAdminEmail('${doc.id}')">
-              <i class="fas fa-eye" id="eye-${doc.id}"></i>
-            </button>
-          </div>
+          <span style="font-size:0.8rem;"><span style="color:var(--neon-green)">●</span> ${dateStr} - ${timeStr}</span>
+          <span class="admin-email" id="mail-${doc.id}" onclick="event.stopPropagation(); toggleEmailText('${doc.id}')">
+            ${getMaskedEmail(email)}
+          </span>
         </div>
-        <div class="log-content">
-          <div class="data-grid">${itemsHtml}</div>
-        </div>
+        <div class="log-content"><div class="data-grid">${itemsHtml}</div></div>
       `;
 
-      entry.querySelector('.log-trigger').onclick = () => {
+      entry.querySelector('.log-trigger').onclick = (e) => {
+        if(e.target.classList.contains('admin-email')) return;
         const isActive = entry.classList.contains('active');
         document.querySelectorAll('.log-entry').forEach(el => el.classList.remove('active'));
         if (!isActive) entry.classList.add('active');
       };
-
       container.appendChild(entry);
     });
   }
 
-  // Global toggle for admin email eye button
-  window.toggleAdminEmail = (id) => {
-    const mailText = document.getElementById(`mail-${id}`);
-    const icon = document.getElementById(`eye-${id}`);
+  // Email Text Toggle Logic
+  window.toggleEmailText = (id) => {
+    const el = document.getElementById(`mail-${id}`);
     const actual = rawEmails[id];
+    const masked = getMaskedEmail(actual);
+    el.textContent = el.textContent.trim() === masked ? actual : masked;
+  };
 
-    if (icon.classList.contains('fa-eye')) {
-      mailText.textContent = actual;
-      icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-      mailText.textContent = getMaskedEmail(actual);
-      icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
+  // Item Label Toggle for Mobile
+  window.toggleItemLabel = (e, el) => {
+    e.stopPropagation();
+    const isShowing = el.classList.contains('show-label');
+    document.querySelectorAll('.item-wrapper').forEach(w => w.classList.remove('show-label'));
+    if (!isShowing) el.classList.add('show-label');
+  };
+
+  // Global Close for labels
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.item-wrapper').forEach(w => w.classList.remove('show-label'));
+  });
+
+  window.togglePass = () => {
+    const p = document.getElementById('password');
+    p.type = p.type === 'password' ? 'text' : 'password';
   };
 </script>
 </body>
